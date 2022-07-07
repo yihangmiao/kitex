@@ -107,7 +107,7 @@ func (p *peer) Reset(addr net.Addr) {
 }
 
 // Get picks up connection from ring or dial a new one.
-func (p *peer) Get(d remote.Dialer, timeout time.Duration, reporter Reporter, addr string) (net.Conn, error) {
+func (p *peer) Get(d remote.Dialer, timeout time.Duration, reporter Reporter, addr string, ctx ...context.Context) (net.Conn, error) {
 	for {
 		conn, _ := p.ring.Pop().(*longConn)
 		if conn == nil {
@@ -120,7 +120,14 @@ func (p *peer) Get(d remote.Dialer, timeout time.Duration, reporter Reporter, ad
 		}
 		_ = conn.Conn.Close()
 	}
-	conn, err := d.DialTimeout(p.addr.Network(), p.addr.String(), timeout)
+	var conn net.Conn
+    var err error  
+	if len(ctx) > 0{
+		conn, err = d.DialTimeout(p.addr.Network(), p.addr.String(), timeout, ctx[0])
+	}else{
+		conn, err = d.DialTimeout(p.addr.Network(), p.addr.String(), timeout)
+	}
+	
 	if err != nil {
 		reporter.ConnFailed(Long, p.serviceName, p.addr)
 		return nil, err
@@ -179,7 +186,7 @@ func (lp *LongPool) getPeer(addr netAddr) *peer {
 func (lp *LongPool) Get(ctx context.Context, network, address string, opt remote.ConnOption) (net.Conn, error) {
 	addr := netAddr{network, address}
 	p := lp.getPeer(addr)
-	return p.Get(opt.Dialer, opt.ConnectTimeout, lp.reporter, address)
+	return p.Get(opt.Dialer, opt.ConnectTimeout, lp.reporter, address, ctx)
 }
 
 // Put implements the ConnPool interface.

@@ -2,6 +2,8 @@ module github.com/cloudwego/kitex
 
 go 1.13
 
+replace github.com/cloudwego/netpoll => github.com/yihangmiao/netpoll v0.2.5
+
 require (
 	github.com/apache/thrift v0.13.0
 	github.com/bytedance/gopkg v0.0.0-20220509134931-d1878f638986
