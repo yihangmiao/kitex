@@ -22,12 +22,16 @@ import (
 	"net"
 	"reflect"
 	"sync"
+	"syscall"
 	"time"
+
+	"code.byted.org/gopkg/logs"
 
 	"github.com/cloudwego/kitex/pkg/connpool"
 	"github.com/cloudwego/kitex/pkg/remote"
 	"github.com/cloudwego/kitex/pkg/utils"
 	"github.com/cloudwego/kitex/pkg/warmup"
+	"github.com/cloudwego/netpoll"
 )
 
 var (
@@ -116,16 +120,38 @@ func (p *peer) Get(d remote.Dialer, timeout time.Duration, reporter Reporter, ad
 		p.globalIdle.Dec()
 		if conn.IsActive() {
 			reporter.ReuseSucceed(Long, p.serviceName, p.addr)
+			if len(ctx) > 0{
+				if val, ok:=ctx[0].Value("DSCP").(int); ok{
+					fd := conn.Conn.(*netpoll.TCPConnection).Fd()
+					syscall.SetsockoptInt(fd, syscall.IPPROTO_IP, syscall.IP_TOS, val)
+					logs.Info("set DSCP value %d", val)
+				}
+				if val, ok:=ctx[0].Value("MARK").(int); ok{
+					fd := conn.Conn.(*netpoll.TCPConnection).Fd()
+					syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, syscall.SO_MARK, val);
+					logs.Info("set SO_MARK value %d", val)
+				}
+			}
+
 			return conn, nil
 		}
 		_ = conn.Conn.Close()
 	}
 	var conn net.Conn
     var err error  
+
+	conn, err = d.DialTimeout(p.addr.Network(), p.addr.String(), timeout)
 	if len(ctx) > 0{
-		conn, err = d.DialTimeout(p.addr.Network(), p.addr.String(), timeout, ctx[0])
-	}else{
-		conn, err = d.DialTimeout(p.addr.Network(), p.addr.String(), timeout)
+		if val, ok:=ctx[0].Value("DSCP").(int); ok{
+			fd := conn.(*netpoll.TCPConnection).Fd()
+			syscall.SetsockoptInt(fd, syscall.IPPROTO_IP, syscall.IP_TOS, val)
+			logs.Info("set DSCP value %d", val)
+		}
+		if val, ok:=ctx[0].Value("MARK").(int); ok{
+			fd := conn.(*netpoll.TCPConnection).Fd()
+			syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, syscall.SO_MARK, val);
+			logs.Info("set SO_MARK value %d", val)
+		}
 	}
 	
 	if err != nil {

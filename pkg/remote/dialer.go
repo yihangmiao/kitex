@@ -17,14 +17,13 @@
 package remote
 
 import (
-	"context"
 	"net"
 	"time"
 )
 
 // Dialer is used to dial and get a connection.
 type Dialer interface {
-	DialTimeout(network, address string, timeout time.Duration, ctx ...context.Context) (net.Conn, error)
+	DialTimeout(network, address string, timeout time.Duration) (net.Conn, error)
 }
 
 // NewDefaultDialer is used to create a default dialer.
@@ -40,6 +39,6 @@ type SynthesizedDialer struct {
 }
 
 // DialTimeout implements the Dialer interface.
-func (sd SynthesizedDialer) DialTimeout(network, address string, timeout time.Duration, ctx ...context.Context) (net.Conn, error) {
+func (sd SynthesizedDialer) DialTimeout(network, address string, timeout time.Duration) (net.Conn, error) {
 	return sd.DialFunc(network, address, timeout)
 }
