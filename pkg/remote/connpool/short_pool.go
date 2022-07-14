@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"net"
 
+	"code.byted.org/gopkg/logs"
+
 	"github.com/cloudwego/kitex/pkg/remote"
 	"github.com/cloudwego/kitex/pkg/utils"
 )
@@ -71,6 +73,7 @@ func (p *ShortPool) Get(ctx context.Context, network, address string, opt remote
 		p.reporter.ConnFailed(Short, p.serviceName, addr)
 		return nil, fmt.Errorf("dial connection err: %s, addr: %s", err, addr)
 	}
+	logs.Info("establish short conn to %s", address)
 	p.reporter.ConnSucceed(Short, p.serviceName, addr)
 	return &shortConn{Conn: conn}, nil
 }

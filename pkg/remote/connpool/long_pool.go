@@ -124,12 +124,12 @@ func (p *peer) Get(d remote.Dialer, timeout time.Duration, reporter Reporter, ad
 				if val, ok:=ctx[0].Value("DSCP").(int); ok{
 					fd := conn.Conn.(*netpoll.TCPConnection).Fd()
 					syscall.SetsockoptInt(fd, syscall.IPPROTO_IP, syscall.IP_TOS, val)
-					logs.Info("set DSCP value %d", val)
+					logs.Info("set DSCP value %d, connect to %s", val, p.addr)
 				}
 				if val, ok:=ctx[0].Value("MARK").(int); ok{
 					fd := conn.Conn.(*netpoll.TCPConnection).Fd()
 					syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, syscall.SO_MARK, val);
-					logs.Info("set SO_MARK value %d", val)
+					logs.Info("set SO_MARK value %d, connect to %s", val, p.addr)
 				}
 			}
 
@@ -145,12 +145,12 @@ func (p *peer) Get(d remote.Dialer, timeout time.Duration, reporter Reporter, ad
 		if val, ok:=ctx[0].Value("DSCP").(int); ok{
 			fd := conn.(*netpoll.TCPConnection).Fd()
 			syscall.SetsockoptInt(fd, syscall.IPPROTO_IP, syscall.IP_TOS, val)
-			logs.Info("set DSCP value %d", val)
+			logs.Info("set DSCP value %d, connect to %s", val, p.addr)
 		}
 		if val, ok:=ctx[0].Value("MARK").(int); ok{
 			fd := conn.(*netpoll.TCPConnection).Fd()
 			syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, syscall.SO_MARK, val);
-			logs.Info("set SO_MARK value %d", val)
+			logs.Info("set SO_MARK value %d, connect to %s", val, p.addr)
 		}
 	}
 	
